@@ -1,3 +1,13 @@
+## Installing kind
+If you are using [`asdf`](https://asdf-vm.com/) you can install the exact version of Kind used in this project.
+
+```
+asdf plugin-add kind https://github.com/reegnz/asdf-kind.git
+asdf install
+```
+
+If you prefer to install another way, take a look at the `.tool-versions` file to see the version of Kind used in these instructions.
+
 ## Kind Cluster creation commands
 
 1. Simple single node creation command
