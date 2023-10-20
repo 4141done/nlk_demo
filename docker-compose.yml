@@ -1,0 +1,20 @@
+version: '3.3'
+services:
+  # NGINX Plus Load Balancer
+  nginx-plus:
+      container_name: nginx-plus
+      hostname: nginx-plus
+      build: nginx-plus
+      volumes:
+          - ./nginx-plus/etc/nginx:/etc/nginx
+      ports:
+          - 8080:8080
+          - 80:80
+          - 443:443
+      restart: always
+      networks:
+          - kind
+networks:
+  kind:
+    name: kind
+    driver: bridge
