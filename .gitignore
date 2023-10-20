@@ -1,7 +1,9 @@
 # Any private crt and keys #
 ############################
 *.crt
+!default.crt
 *.key
+!default.key
 *.jwt
 *~
 \#*
@@ -19,3 +21,4 @@ Thumbs.db
 # NGINX Ingress Cloned Repo #
 #############################
 kubernetes-ingress/
+nginx-loadbalancer-kubernetes/

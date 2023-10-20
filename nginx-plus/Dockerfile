@@ -6,7 +6,7 @@ LABEL maintainer="sh.dutta@f5.com"
 # Download certificate and key from the customer portal (https://cs.nginx.com)
 # and copy to the build context:
 COPY etc/ssl/nginx/nginx-repo.* /etc/ssl/nginx/
-RUN chmod 644 /etc/ssl/nginx/* 
+RUN chmod 644 /etc/ssl/nginx/*
 
 # Install prerequisite packages:
 RUN apt-get update && apt-get install -y apt-transport-https lsb-release ca-certificates wget gnupg2 vim

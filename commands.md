@@ -79,4 +79,63 @@ If you prefer to install another way, take a look at the `.tool-versions` file t
     kubectl apply -f install/nginx-plus-ingress.yaml
     ```
 
+## Install the cafe App
+1. Check the `nginx-loadbalancer-kubernetes` project.  From the root of the project: `git clone https://github.com/nginxinc/nginx-loadbalancer-kubernetes.git`
+
+2. Go to `./nginx-loadbalancer-kubernetes/docs/cafe-demo`
+3. Deploy the application using the following three commands:
+      ```bash
+      kubectl apply -f cafe-secret.yaml
+      kubectl apply -f cafe.yaml
+      kubectl apply -f cafe-virtualserver.yaml
+      ```
+
+## Installing NGINX Plus as a Load Balancer
+1. Make sure you have the `nginx-repo.crt` and `nginx-repo.key` files from myf5. Place them in `./nginx-plus/ssl/nginx`
+
+2. From the root of the project, run `docker compose up`
+
+3. Test the installation by going to `http://localhost:8080` in your browser.  You should see the NGINX Plus dashboard
+
+## Install the `ngnix-loadbalancer-kubernetes` Controller
+1. Get the ip address of the nginx plus container in the `kind` network:
+      ```bash
+      export PLUS_IP=$(docker network inspect kind | grep -o '"Name": "nginx-plus"' -A 5 | grep '"IPv4Address":' | cut -d '"' -f 4 | sed 's/\/16//')
+      ```
+      Thanks ChatGPT
+
+1. Modify the configmap `sed -i "" "s/PLUS_IP/$PLUS_IP/g" ./nlk/config-map.yaml` (Thanks ChatGPT)
+
+2. From the `./nginx-loadbalancer-kubernetes` directory, run the following commands in order to install the controller:
+      ```bash
+      kubectl apply -f deployments/deployment/namespace.yaml
+      ./deployments/rbac/apply.sh
+      kubectl apply -f deployments/deployment/configmap.yaml
+      kubectl apply -f deployments/deployment/deployment.yaml
+      ```
+3. Check the logs to be sure it's running:
+      ```bash
+      kubectl -n nlk get pods | grep deployment | cut -f1 -d" "  | xargs kubectl logs -n nlk --follow $1
+      ```
+
+## Configuring `nginx-loadbalancer-kubernetes` Upstreams
+We need to configure the NGINX Plus load balancer with certain upstreams, then provide the names of those upstreams to NLK so that it knows which ones to manage.
+
+1. Add an entry in your `/etc/hosts` file that looks like this:
+`PLUS_IP cafe.example.com`
+where `PLUS_IP` is equal to the output of
+      ```bash
+      docker network inspect kind | grep -o '"Name": "nginx-plus"' -A 5 | grep '"IPv4Address":' | cut -d '"' -f 4 | sed 's/\/16//'
+      ```
+
+### Add the loadbalancer Manifest
+1. Modify the loadbalancer manifest `sed -i "" "s/PLUS_IP/$PLUS_IP/g" ./nlk/loadbalancer.yaml` (Thanks ChatGPT)
+
+1. Apply it: `kubectl apply -f ./nlk/loadbalancer.yaml`
+
+## Questions
+* Do we use service type loadbalancer or nodeport?
+* In the loadbalancer manifest, what does `nginxinc.io/XXX: "http"` do?
+* How does NLK make the LoadBalancer service type?
+
    
