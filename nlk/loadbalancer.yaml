@@ -10,7 +10,7 @@ metadata:
   name: nginx-ingress
   namespace: nginx-ingress
   annotations:
-    nginxinc.io/cafe: "http"   # Must be added
+    nginxinc.io/nlk-cafe: "http"   # Must be added
 spec:
   type: LoadBalancer
   externalIPs:
@@ -19,6 +19,6 @@ spec:
   - port: 443
     targetPort: 443
     protocol: TCP
-    name: cafe     # Must match Nginx upstream name
+    name: nlk-cafe     # Must match Nginx upstream name
   selector:
     app: nginx-ingress

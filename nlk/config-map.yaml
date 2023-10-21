@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 data:
   nginx-hosts:
-    "http://PLUS_IP:8080/api"
+    "http://PLUS_IP:9000/api"
 metadata:
   name: nlk-config
   namespace: nlk
