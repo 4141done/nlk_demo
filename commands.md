@@ -151,7 +151,6 @@ If you prefer to install another way, take a look at the `.tool-versions` file t
    time="2023-10-25T16:05:50Z" level=error msg="Settings::handleUpdateEvent: nginx-hosts key not found in ConfigMap"
    I1025 16:05:50.703922       1 shared_informer.go:280] Caches are synced for nlk-handler
    ```
-   
 
 ## Configuring `nginx-loadbalancer-kubernetes` Upstreams
 We need to configure the NGINX Plus load balancer with certain upstreams, then provide the names of those upstreams to NLK so that it knows which ones to manage.
