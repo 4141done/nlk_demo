@@ -134,8 +134,13 @@ where `PLUS_IP` is equal to the output of
 1. Apply it: `kubectl apply -f ./nlk/loadbalancer.yaml`
 
 ## Questions
-* Do we use service type loadbalancer or nodeport?
-* In the loadbalancer manifest, what does `nginxinc.io/XXX: "http"` do?
-* How does NLK make the LoadBalancer service type?
+* Do we use service type loadbalancer or nodeport? Use Nodeport
+* In the loadbalancer manifest, what does `nginxinc.io/XXX: "http"` do? It tells NLK whether to communicate the ips to the layer 4 api or the layer 7 api
+* How does NLK make the LoadBalancer service type? it doesn't! Not sure why it uses loadbalancer in the example.
 
+
+## Teardown
+```bash
+kind delete cluster --name nlk-multi-node-demo
+```
    

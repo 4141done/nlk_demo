@@ -4,13 +4,16 @@
 # externalIPs are set to Nginx LB Servers
 # Chris Akker, Apr 2023
 #
+# This is a service watched by NLK
+# Using a LoadBalancer service is not recommended? NLK is designed primarily
+# With nodeport type services in mind
 apiVersion: v1
 kind: Service
 metadata:
   name: nginx-ingress
   namespace: nginx-ingress
   annotations:
-    nginxinc.io/nlk-cafe: "http"   # Must be added
+    nginxinc.io/nlk-cafe: "http"   # This switches between layer 7 and layer 4. This is for the nginx plus API
 spec:
   type: LoadBalancer
   externalIPs:
@@ -19,6 +22,9 @@ spec:
   - port: 443
     targetPort: 443
     protocol: TCP
-    name: nlk-cafe     # Must match Nginx upstream name
+    name: nlk-cafe     # Must match Nginx upstream name (can do multipls)
   selector:
     app: nginx-ingress
+
+    # The nlk-prefix helps differentiate between ports managed by nlk.  When an update
+    # comes, only act on port names with the `nlk-` prefix
