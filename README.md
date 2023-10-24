@@ -16,7 +16,7 @@ Depending on your cloud platform, a `LoadBalancer` might create:
 
 If you're not on a cloud provider and need to provide access to your cluster, what do you do?
 
-NLK implements `LoadBalancer` for the cluser in which you install it. It then feeds information about the cluser to and NGINX instance which actually does the load balancing.
+NLK provides a controller that is deployed to a kubernetes pod and listens for changes to services in the `nginx-ingress` namespace that have names prefixed with `nlk-`
 
 ```mermaid
 flowchart LR
@@ -48,15 +48,5 @@ This setup has three main pieces:
 1. An instance of NGINX Plus running outside the Kubernetes Cluster -> Running in a docker container on the same docker network as the kind cluster
 
 
-### 
-
-```mermaid
-flowchart LR
-    title[<u>NLK Relationship with Kubernetes and NGINX Plus</u>]
-    nlk-->np["NGINX Plus"]
-    subgraph Kubernetes Cluster
-    nlk["nginx-loadbalancer-kubernetes"]
-    end
-```
 
 
