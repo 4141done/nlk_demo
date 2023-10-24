@@ -89,13 +89,14 @@ If you prefer to install another way, take a look at the `.tool-versions` file t
       kubectl apply -f cafe.yaml
       kubectl apply -f cafe-virtualserver.yaml
       ```
+      You will not need an `Ingress` type resource later because the `virtualserver` resource handles routing.
 
 ## Installing NGINX Plus as a Load Balancer
 1. Make sure you have the `nginx-repo.crt` and `nginx-repo.key` files from myf5. Place them in `./nginx-plus/ssl/nginx`
 
 2. From the root of the project, run `docker compose up`
 
-3. Test the installation by going to `http://localhost:8080` in your browser.  You should see the NGINX Plus dashboard
+3. Test the installation by going to `http://localhost:9000/dashboard.html` in your browser.  You should see the NGINX Plus dashboard
 
 ## Install the `ngnix-loadbalancer-kubernetes` Controller
 1. Get the ip address of the nginx plus container in the `kind` network:
@@ -122,16 +123,15 @@ If you prefer to install another way, take a look at the `.tool-versions` file t
 We need to configure the NGINX Plus load balancer with certain upstreams, then provide the names of those upstreams to NLK so that it knows which ones to manage.
 
 1. Add an entry in your `/etc/hosts` file that looks like this:
-`PLUS_IP cafe.example.com`
-where `PLUS_IP` is equal to the output of
-      ```bash
-      docker network inspect kind | grep -o '"Name": "nginx-plus"' -A 5 | grep '"IPv4Address":' | cut -d '"' -f 4 | sed 's/\/16//'
-      ```
+      `127.0.0.1 cafe.example.com`
+      This works because the NGINX Plus container is started with port bindings to `localhost`
 
-### Add the loadbalancer Manifest
-1. Modify the loadbalancer manifest `sed -i "" "s/PLUS_IP/$PLUS_IP/g" ./nlk/loadbalancer.yaml` (Thanks ChatGPT)
+### Add the `NodePort` Manifest
+1. Apply it: `kubectl apply -f ./nlk/nodeport.yaml`
 
-1. Apply it: `kubectl apply -f ./nlk/loadbalancer.yaml`
+## Testing
+1. Check the NGINX Plus dashboards to make sure that you have three upstreams (http://localhost:9000/dashboard.html#upstreams). They should all be "green" and have a high port number
+2. Try a curl request like this: `curl -H -i -k https://cafe.example.com/tea` or `curl -H -i -k https://cafe.example.com/coffee`
 
 ## Questions
 * Do we use service type loadbalancer or nodeport? Use Nodeport
@@ -142,5 +142,6 @@ where `PLUS_IP` is equal to the output of
 ## Teardown
 ```bash
 kind delete cluster --name nlk-multi-node-demo
+docker compose down
 ```
    

@@ -15,6 +15,15 @@ services:
       restart: always
       networks:
           - kind
+  debug-ubuntu:
+    container_name: debug-ubuntu
+    hostname: debug-ubuntu
+    image: ubuntu:23.10
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    restart: always
+    networks:
+        - kind
 networks:
   kind:
     name: kind
