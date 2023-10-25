@@ -30,6 +30,8 @@ If you prefer to install another way, take a look at the `.tool-versions` file t
 1. Clone the NGINX Ingress Controller repository and change into the deployments folder
    ```bash
    git clone https://github.com/nginxinc/kubernetes-ingress.git --branch v3.3.1
+   ```
+   ```bash
    cd kubernetes-ingress/deployments
    ```
 
@@ -80,44 +82,76 @@ If you prefer to install another way, take a look at the `.tool-versions` file t
     ```
 
 ## Install the cafe App
-1. Check the `nginx-loadbalancer-kubernetes` project.  From the root of the project: `git clone https://github.com/nginxinc/nginx-loadbalancer-kubernetes.git`
+1. Check the `nginx-loadbalancer-kubernetes` project.  From the root of the project perform a git clone: 
+   ```bash
+   cd ..
+   git clone https://github.com/nginxinc/nginx-loadbalancer-kubernetes.git
+   ```
 
-2. Go to `./nginx-loadbalancer-kubernetes/docs/cafe-demo`
+2. Navigate to the cafe-demo directory
+   ```bash
+   cd nginx-loadbalancer-kubernetes/docs/cafe-demo
+   ```
 3. Deploy the application using the following three commands:
-      ```bash
-      kubectl apply -f cafe-secret.yaml
-      kubectl apply -f cafe.yaml
-      kubectl apply -f cafe-virtualserver.yaml
-      ```
-      You will not need an `Ingress` type resource later because the `virtualserver` resource handles routing.
+   ```bash
+   kubectl apply -f cafe-secret.yaml
+   kubectl apply -f cafe.yaml
+   kubectl apply -f cafe-virtualserver.yaml
+   cd ../../..
+   ```
+   >**Note:** Instead of using `Ingress` type resource we are making use of `virtualserver` resource that handles routing.
 
 ## Installing NGINX Plus as a Load Balancer
-1. Make sure you have the `nginx-repo.crt` and `nginx-repo.key` files from myf5. Place them in `./nginx-plus/ssl/nginx`
+1. Make sure you have the `nginx-repo.crt` and `nginx-repo.key` files from myf5. Place them in `./nginx-plus/etc/ssl/nginx`
+   ```bash
+   ls nginx-plus/etc/ssl/nginx
+   ```
 
-2. From the root of the project, run `docker compose up`
+2. From the root of the project, run below command      
+   ```bash
+   docker compose up
+   ```
 
-3. Test the installation by going to `http://localhost:9000/dashboard.html` in your browser.  You should see the NGINX Plus dashboard
+3. Test the installation by going to http://localhost:9000/dashboard.html in your browser.  You should see the NGINX Plus dashboard
 
 ## Install the `ngnix-loadbalancer-kubernetes` Controller
 1. Get the ip address of the nginx plus container in the `kind` network:
       ```bash
       export PLUS_IP=$(docker network inspect kind | grep -o '"Name": "nginx-plus"' -A 5 | grep '"IPv4Address":' | cut -d '"' -f 4 | sed 's/\/16//')
       ```
-      Thanks ChatGPT
+      (Thanks ChatGPT)
 
-1. Modify the configmap `sed -i "" "s/PLUS_IP/$PLUS_IP/g" ./nlk/config-map.yaml` (Thanks ChatGPT)
+2. Modify the configmap 
+   ```bash
+   sed -i "" "s/PLUS_IP/$PLUS_IP/g" ./nlk/config-map.yaml
+   ``` 
+   (Thanks ChatGPT)
 
-2. From the `./nginx-loadbalancer-kubernetes` directory, run the following commands in order to install the controller:
-      ```bash
-      kubectl apply -f deployments/deployment/namespace.yaml
-      ./deployments/rbac/apply.sh
-      kubectl apply -f deployments/deployment/configmap.yaml
-      kubectl apply -f deployments/deployment/deployment.yaml
-      ```
-3. Check the logs to be sure it's running:
-      ```bash
-      kubectl -n nlk get pods | grep deployment | cut -f1 -d" "  | xargs kubectl logs -n nlk --follow $1
-      ```
+3. Run the following commands in order to install the controller:
+   ```bash
+   kubectl apply -f ./nginx-loadbalancer-kubernetes/deployments/deployment/namespace.yaml
+   ./nginx-loadbalancer-kubernetes/deployments/rbac/apply.sh
+   kubectl apply -f ./nlk/config-map.yaml
+   kubectl apply -f ./nginx-loadbalancer-kubernetes/deployments/deployment/deployment.yaml
+   ```
+
+
+4. Check the logs to be sure it's running:
+   ```bash
+   kubectl -n nlk get pods | grep deployment | cut -f1 -d" "  | xargs kubectl logs -n nlk --follow $1
+   ```
+   ```bash
+   ###Sample Output###
+   time="2023-10-25T16:05:50Z" level=info msg="Settings::Initialize"
+   time="2023-10-25T16:05:50Z" level=info msg="Watcher::buildEventHandlerForAdd"
+   time="2023-10-25T16:05:50Z" level=info msg="Watcher::buildEventHandlerForDelete"
+   time="2023-10-25T16:05:50Z" level=info msg="Watcher::buildEventHandlerForUpdate"
+   time="2023-10-25T16:05:50Z" level=info msg="Started probe listener on:51031"
+   I1025 16:05:50.603318       1 shared_informer.go:273] Waiting for caches to sync for nlk-handler
+   time="2023-10-25T16:05:50Z" level=error msg="Settings::handleUpdateEvent: nginx-hosts key not found in ConfigMap"
+   I1025 16:05:50.703922       1 shared_informer.go:280] Caches are synced for nlk-handler
+   ```
+   
 
 ## Configuring `nginx-loadbalancer-kubernetes` Upstreams
 We need to configure the NGINX Plus load balancer with certain upstreams, then provide the names of those upstreams to NLK so that it knows which ones to manage.
@@ -127,11 +161,21 @@ We need to configure the NGINX Plus load balancer with certain upstreams, then p
       This works because the NGINX Plus container is started with port bindings to `localhost`
 
 ### Add the `NodePort` Manifest
-1. Apply it: `kubectl apply -f ./nlk/nodeport.yaml`
+1. Run the below command to deploy the nodeport service.
+   ```bash
+   kubectl apply -f ./nlk/nodeport.yaml
+   ```
 
 ## Testing
 1. Check the NGINX Plus dashboards to make sure that you have three upstreams (http://localhost:9000/dashboard.html#upstreams). They should all be "green" and have a high port number
-2. Try a curl request like this: `curl -H -i -k https://cafe.example.com/tea` or `curl -H -i -k https://cafe.example.com/coffee`
+2. Try some `curl` request as shown below 
+   ```bash
+   curl -H -i -k https://cafe.example.com/tea
+   ``` 
+   or 
+   ```bash
+   curl -H -i -k https://cafe.example.com/coffee
+   ```
 
 ## Questions
 * Do we use service type loadbalancer or nodeport? Use Nodeport
