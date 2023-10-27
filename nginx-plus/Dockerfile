@@ -1,5 +1,4 @@
-# For Ubuntu 20.04:
-FROM ubuntu:focal
+FROM ubuntu:22.04
 
 LABEL maintainer="sh.dutta@f5.com"
 
@@ -20,7 +19,7 @@ RUN wget -P /etc/apt/apt.conf.d https://cs.nginx.com/static/files/90pkgs-nginx
 # Update the repository and install the most recent version of the NGINX Plus package:
 RUN apt-get update && apt-get install -y nginx-plus
 # njs dynamic modules
-RUN apt-get install --no-install-recommends --no-install-suggests -y nginx-plus-module-njs 
+RUN apt-get install --no-install-recommends --no-install-suggests -y nginx-plus-module-njs nginx-plus-module-prometheus
 # Remove nginx repository key/cert from docker
 RUN rm -rf /etc/ssl/nginx
 
