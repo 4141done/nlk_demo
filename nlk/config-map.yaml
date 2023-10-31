@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 data:
   nginx-hosts:
-    "http://172.18.0.6:9000/api"
+    "http://PLUS_IP:9000/api"
 metadata:
   name: nlk-config
   namespace: nlk
