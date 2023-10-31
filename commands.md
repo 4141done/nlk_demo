@@ -176,6 +176,19 @@ We need to configure the NGINX Plus load balancer with certain upstreams, then p
    curl -H -i -k https://cafe.example.com/coffee
    ```
 
+
+## Visualization
+### Prometheus
+The prometheus dashboard is available at `localhost:9090`.  You can look for specific metrics like `nginxplus_location_zone_responses` to test if it is working.  Click the "world" icon next to the "execute" button to explore metrics.  Sick.
+
+### Grafana
+Grafana will be running at `localhost:3000`.  There are currently a few manual steps to get it running:
+
+1. Go to `http://localhost:3000/connections/add-new-connection` and add a new "prometheus" type connection.  The only thing you have to configure is the "prometheus server url" which should be set to `http://prometheus-external:9090`
+
+2. Copy the uuid from the address bar (it will look something like `dfc89e77-4bdb-4d50-a2f1-faf1c9b63fda`).  In `./grafana/grafana-dashboard.json` replace the `uid` field under all datasources with that uuid.
+
+
 ## Questions
 * Do we use service type loadbalancer or nodeport? Use Nodeport
 * In the loadbalancer manifest, what does `nginxinc.io/XXX: "http"` do? It tells NLK whether to communicate the ips to the layer 4 api or the layer 7 api

@@ -25,6 +25,8 @@ services:
   #   networks:
   #       - kind
   prometheus:
+    container_name: prometheus-external
+    hostname: prometheus-external
     image: prom/prometheus
     ports:
       - "9090:9090"
@@ -34,6 +36,19 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
     networks:
       - kind
+
+  grafana:
+    container_name: grafana-external
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    networks:
+      - kind
+
+volumes:
+  grafana-storage:
 
 networks:
   kind:
