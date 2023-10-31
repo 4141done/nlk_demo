@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 15s 
+  
+  external_labels:
+    monitor: 'external-lb-monitor'
+ 
+scrape_configs:  
+  - job_name: 'prometheus-external-lb'
+    
+    scrape_interval: 5s
+ 
+    static_configs:
+      - targets: ['nginx-plus:80']
