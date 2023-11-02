@@ -1,0 +1,51 @@
+# This actually creates the prometheus pods
+apiVersion: monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  name: main
+spec:
+  externalUrl: http://monitoring.my.systems/prometheus
+  resources:
+    requests:
+      memory: 400Mi
+---
+apiVersion: monitoring.coreos.com/v1
+kind: Alertmanager
+metadata:
+  name: main
+spec:
+  replicas: 3
+  externalUrl: http://monitoring.my.systems/alertmanager
+  resources:
+    requests:
+      memory: 400Mi
+---
+# This is the service we will use to expose prometheus in the cluster
+# as a service
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-main
+spec:
+  type: ClusterIP
+  ports:
+  - name: web
+    port: 9090
+    protocol: TCP
+    targetPort: web
+  selector:
+    prometheus: main
+---
+# This is the part that tells prometheus to scrape the main
+# nginx ingress controller
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata: 
+  name: nginx-ingress-monitor
+spec:
+  selector:
+    matchLabels:
+      app: nginx-ingress
+  endpoints:
+  - port: prometheus
+    interval: 10s

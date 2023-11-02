@@ -181,6 +181,41 @@ We need to configure the NGINX Plus load balancer with certain upstreams, then p
 ### Prometheus
 The prometheus dashboard is available at `localhost:9090`.  You can look for specific metrics like `nginxplus_location_zone_responses` to test if it is working.  Click the "world" icon next to the "execute" button to explore metrics.  Sick.
 
+#### Prometheus Operator for Kubernetes
+`LATEST=$(curl -s https://api.github.com/repos/prometheus-operator/prometheus-operator/releases/latest | jq -cr .tag_name)`
+
+`curl -sL https://github.com/prometheus-operator/prometheus-operator/releases/download/${LATEST}/bundle.yaml | kubectl create -f -`
+
+Validate installed 
+```bash
+kubectl wait --for=condition=Ready pods -l  app.kubernetes.io/name=prometheus-operator -n default
+```
+
+Apply the manifests:
+`kubectl -f prometheus/service-account.yaml`
+`kubectl -f prometheus/deployment.yaml`
+
+
+Expose the Prometheus endpoint outside the cluster.  To `nginx-loadbalancer-kubernetes/docs/cafe-demo/cafe-virtualserver.yaml`
+add this upstream:
+```yaml
+  - name: prometheus
+    service: prometheus-main
+    port: 9090
+    lb-method: round_robin
+    slow-start: 20s
+```
+Then under `routes` add the following paths:
+```yaml
+  - path: /metrics
+    action:
+      pass: prometheus
+  - path: /federate
+    action:
+      pass: prometheus
+```
+
+
 ### Grafana
 Grafana will be running at `localhost:3000`.  There are currently a few manual steps to get it running:
 
