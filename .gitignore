@@ -8,6 +8,9 @@
 *~
 \#*
 
+# NGINX Plus state files
+*.state
+
 # OS Specific #
 ###############
 Thumbs.db
