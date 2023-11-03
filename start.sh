@@ -1,10 +1,20 @@
 #! /bin/bash
+echo "Cleaning up any old components..."
+echo "💀 Taking down docker compose"
+docker compose down
+echo "💀 Ensuring cluster is down"
 kind delete cluster --name nlk-multi-node-demo
+
+echo "Standing up cluster and external elements..."
+echo "🌺🐥🌺 Standing up external docker containers"
 docker compose up -d
+
+echo "🌺🐥🌺 Creating Kind cluster"
 kind create cluster --config kind/3node-config.yaml
 sleep 10
 kubectl cluster-info --context kind-nlk-multi-node-demo
-echo "Aww yeahh"
+
+echo "💖💖 Done standing up cluster 💖💖"
 
 ## Make sure the config-map.yaml is the expected value for templating
 cat <<EOF > nlk/config-map.yaml
@@ -19,7 +29,7 @@ metadata:
 
 EOF
 
-echo "installing ingress controller..."
+echo "🈁 Installing ingress controller..."
 kubectl apply -f kubernetes-ingress/deployments/common/ns-and-sa.yaml
 kubectl apply -f kubernetes-ingress/deployments/rbac/rbac.yaml
 kubectl apply -f kubernetes-ingress/examples/shared-examples/default-server-secret/default-server-secret.yaml
@@ -37,13 +47,13 @@ echo $jwt_token
 kubectl create secret docker-registry regcred --docker-server=private-registry.nginx.com --docker-username=$jwt_token --docker-password=none -n nginx-ingress
 kubectl apply -f nic/install/nginx-plus-ingress.yaml
 
-echo "Installing cafe app..."
+echo "☕🍵 Installing cafe app..."
 kubectl apply -f nginx-loadbalancer-kubernetes/docs/cafe-demo/cafe-secret.yaml
 kubectl apply -f nginx-loadbalancer-kubernetes/docs/cafe-demo/cafe.yaml
 kubectl apply -f nginx-loadbalancer-kubernetes/docs/cafe-demo/cafe-virtualserver.yaml
 
 
-echo "Installing NLK"
+echo "🐸 Installing NLK"
 export PLUS_IP=$(docker network inspect kind | grep -o '"Name": "nginx-plus"' -A 5 | grep '"IPv4Address":' | cut -d '"' -f 4 | sed 's/\/16//')
 sed -i "" "s/PLUS_IP/$PLUS_IP/g" ./nlk/config-map.yaml
 
@@ -54,9 +64,9 @@ kubectl apply -f nginx-loadbalancer-kubernetes/deployments/deployment/namespace.
 kubectl apply -f nlk/config-map.yaml
 kubectl apply -f nginx-loadbalancer-kubernetes/deployments/deployment/deployment.yaml
 
-echo "Adding NodePort"
+echo "⚓ Adding NodePort"
 sleep 10
 kubectl apply -f nlk/nodeport.yaml
 
-echo "Done!"
-echo "Next steps:\n    1. Check the NGINX Plus Dashboard at http://localhost:9000/dashboard\n    2. Make sure your /etc/hosts has the entry '127.0.0.1 cafe.example.com'\n    3. Try to hit the services 'curl -H -i -k https://cafe.example.com/tea'"
+echo "🐳🐳 Done! 🐳🐳"
+printf "Next steps:\n    1. Check the NGINX Plus Dashboard at http://localhost:9000/dashboard\n    2. Make sure your /etc/hosts has the entry '127.0.0.1 cafe.example.com'\n    3. Try to hit the services 'curl -H -i -k https://cafe.example.com/tea'"

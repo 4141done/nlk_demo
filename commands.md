@@ -192,8 +192,8 @@ kubectl wait --for=condition=Ready pods -l  app.kubernetes.io/name=prometheus-op
 ```
 
 Apply the manifests:
-`kubectl -f prometheus/service-account.yaml`
-`kubectl -f prometheus/deployment.yaml`
+`kubectl apply -f prometheus/service-account.yaml`
+`kubectl apply -f prometheus/deployment.yaml`
 
 
 Expose the Prometheus endpoint outside the cluster.  To `nginx-loadbalancer-kubernetes/docs/cafe-demo/cafe-virtualserver.yaml`
