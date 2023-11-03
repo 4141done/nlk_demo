@@ -175,7 +175,19 @@ We need to configure the NGINX Plus load balancer with certain upstreams, then p
    ```bash
    curl -H -i -k https://cafe.example.com/coffee
    ```
+### Sending Traffic with `wrk`
+Here is the basic command
 
+```bash
+docker run --rm --network kind elswork/wrk -t4 -c200 -d15m -H 'Host: cafe.example.com' --timeout 2s https://nginx-plus/coffee
+```
+`-d` is duration, `-t` is number of threads, `-c` is number of connections to keep open.
+
+`-c` and `-t` relate as such:
+```
+total number of HTTP connections to keep open with
+                   each thread handling N = connections/threads
+```
 
 ## Visualization
 ### Prometheus
