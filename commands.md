@@ -223,6 +223,36 @@ Grafana will be running at `localhost:3000`.  There are currently a few manual s
 
 2. Copy the uuid from the address bar (it will look something like `dfc89e77-4bdb-4d50-a2f1-faf1c9b63fda`).  In `./grafana/grafana-dashboard.json` replace the `uid` field under all datasources with that uuid.
 
+## NAP Demo
+
+1. To show NAP related security blocking, modify the `docker-compose.yml` file to make use of `Dockerfile_NAP` instead of `Dockerfile_NonNAP` to create `nginx-plus` service.
+   ```yaml
+   ...
+   services:
+   # NGINX Plus Load Balancer
+   nginx-plus:
+         container_name: nginx-plus
+         hostname: nginx-plus
+         build: 
+            context: nginx-plus
+            dockerfile: Dockerfile_NonNAP
+   ...
+   ```
+   should be replaced with 
+   ```yaml
+   ...
+   services:
+   # NGINX Plus Load Balancer
+   nginx-plus:
+         container_name: nginx-plus
+         hostname: nginx-plus
+         build: 
+            context: nginx-plus
+            dockerfile: Dockerfile_NAP
+   ...
+   ```
+2. Within `nginx-plus/etc/nginx` directory rename the `nginx.conf` file to `nginx.conf.nonnap` and rename the `nginx.conf.nap` file to `nginx.conf`.
+3. Run docker compose up command.
 
 ## Questions
 * Do we use service type loadbalancer or nodeport? Use Nodeport

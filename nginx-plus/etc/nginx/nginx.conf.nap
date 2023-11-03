@@ -1,0 +1,96 @@
+user  nginx;
+worker_processes  auto;
+
+error_log  /var/log/nginx/error.log info;
+pid        /var/run/nginx.pid;
+
+load_module /usr/lib/nginx/modules/ngx_http_js_module.so;
+ # Enable NGINX AppProtect
+load_module /usr/lib/nginx/modules/ngx_http_app_protect_module.so; 
+
+worker_rlimit_nofile 2048;
+
+events {
+    worker_connections  1024;
+}
+
+http {
+    # Below line enables AppProtect
+    app_protect_enable on;
+
+    # Below line defines the AppProtect policy. (Note: this line is redundant as the default policy is applied if not defined.)
+    app_protect_policy_file "/etc/app_protect/conf/NginxDefaultPolicy.json";               
+    
+    # Below two lines enables AppProtect logging
+    app_protect_security_log_enable on;
+
+    app_protect_security_log "/etc/app_protect/conf/log_default.json" /var/log/app_protect/nap_default.log;
+
+
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for" "$request_id"';
+
+    # NGINX Plus Additional NGINX Metrics
+    log_format  main_ext  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" "$http2" '
+                      '"$http_user_agent" "$http_x_forwarded_for" '
+                      '"$host" sn="$server_name" '
+                      'rt=$request_time '
+                      'ua="$upstream_addr" us="$upstream_status" '
+                      'ut="$upstream_response_time" ul="$upstream_response_length" '
+                      'cs=$upstream_cache_status $request_id' ;
+
+     # AppProtect specific custom log format
+     log_format nap_log_format 'NAP support ID: $app_protect_support_id - NAP outcome: $app_protect_outcome '
+     '- NAP reason: $app_protect_outcome_reason - NAP policy name: $app_protect_policy_name '
+     '- NAP version: $app_protect_version NGINX request: $request NGINX status: $status';
+
+
+    # access_log  /var/log/nginx/access.log  main; # Default
+    access_log  /var/log/nginx/access.log  nap_log_format; # AppProtect specific custom log format
+
+    # Custom Access logs formats
+    include /etc/nginx/includes/log_formats/*.conf;    
+
+    sendfile        on;
+    #tcp_nopush     on;
+
+    keepalive_timeout  65;
+
+    upstream cafe {
+        # Any upstream stats are stored in the zone memory
+        # store. This is just in aid of the dashboard metrics
+        zone cafe 256k;
+
+        # advanced NGINX Loadbalancing algorithm
+        least_time last_byte;
+        keepalive 16;
+        #servers managed by NLK Controller
+        state cafe-https.state;
+    }
+
+    server {
+        listen 443 ssl;
+        status_zone https://cafe.example.com;
+        server_name cafe.example.com;
+        ssl_certificate /etc/ssl/default.crt;  # self-signed for example only
+        ssl_certificate_key /etc/ssl/default.key;
+        
+        location / {
+            status_zone https://cafe.example.com./;
+            proxy_set_header Host $host;
+            proxy_http_version 1.1;
+            proxy_set_header   "Connection" "";
+            proxy_pass https://cafe;
+        }
+    }
+
+    #gzip  on;
+
+    include /etc/nginx/conf.d/*.conf;    # Regular web traffic
+}
+

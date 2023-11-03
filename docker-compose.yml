@@ -4,7 +4,9 @@ services:
   nginx-plus:
       container_name: nginx-plus
       hostname: nginx-plus
-      build: nginx-plus
+      build: 
+           context: nginx-plus
+           dockerfile: Dockerfile_NonNAP
       volumes:
           - ./nginx-plus/etc/nginx:/etc/nginx
       ports:

@@ -29,6 +29,30 @@ metadata:
 
 EOF
 
+
+## Make sure the loadbalancer.yaml is the expected value for templating
+cat <<EOF > nlk/loadbalancer.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-ingress
+  namespace: nginx-ingress
+  annotations:
+    nginxinc.io/nlk-cafe: "http"   # Must be added
+spec:
+  type: LoadBalancer
+  externalIPs:
+  - PLUS_IP 
+  ports:
+  - port: 443
+    targetPort: 443
+    protocol: TCP
+    name: nlk-cafe     # Must match Nginx upstream name
+  selector:
+    app: nginx-ingress
+
+EOF
+
 echo "🈁 Installing ingress controller..."
 kubectl apply -f kubernetes-ingress/deployments/common/ns-and-sa.yaml
 kubectl apply -f kubernetes-ingress/deployments/rbac/rbac.yaml
@@ -56,6 +80,7 @@ kubectl apply -f nginx-loadbalancer-kubernetes/docs/cafe-demo/cafe-virtualserver
 echo "🐸 Installing NLK"
 export PLUS_IP=$(docker network inspect kind | grep -o '"Name": "nginx-plus"' -A 5 | grep '"IPv4Address":' | cut -d '"' -f 4 | sed 's/\/16//')
 sed -i "" "s/PLUS_IP/$PLUS_IP/g" ./nlk/config-map.yaml
+sed -i "" "s/PLUS_IP/$PLUS_IP/g" ./nlk/loadbalancer.yaml
 
 echo "PLUS_IP is $PLUS_IP"
 
@@ -67,6 +92,10 @@ kubectl apply -f nginx-loadbalancer-kubernetes/deployments/deployment/deployment
 echo "⚓ Adding NodePort"
 sleep 10
 kubectl apply -f nlk/nodeport.yaml
+
+# echo "Adding Loadbalancer service"
+# sleep 10
+# kubectl apply -f nlk/loadbalancer.yaml
 
 echo "🐳🐳 Done! 🐳🐳"
 printf "Next steps:\n    1. Check the NGINX Plus Dashboard at http://localhost:9000/dashboard\n    2. Make sure your /etc/hosts has the entry '127.0.0.1 cafe.example.com'\n    3. Try to hit the services 'curl -H -i -k https://cafe.example.com/tea'"
