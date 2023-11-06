@@ -184,14 +184,14 @@ sequenceDiagram
 
 ## Demonstration: Changes in Service
 The easiest way to see the basics is to do the following:
-1. Check the kubernetes nodeport associated with the ingress controller:
+1. Check the kubernetes `LoadBalancer` associated with the ingress controller:
         ```bash
         $ kubectl get svc nginx-ingress -n nginx-ingress
-        NAME            TYPE       CLUSTER-IP    EXTERNAL-IP   PORT(S)         AGE
-        nginx-ingress   NodePort   10.96.46.68   <none>        443:31462/TCP   6h3m
+        NAME            TYPE           CLUSTER-IP      EXTERNAL-IP   PORT(S)         AGE
+        nginx-ingress   LoadBalancer   10.96.230.243   172.18.0.4    443:30953/TCP   75m
         ```
 
-        Notice the port assigned `31462`
+        Notice the port assigned `30953`
 2. Confirm the presence of these ports in the the NGINX Plus dashboard. Notice that the upstream is called `cafe`
 3. Take a look at the NGINX configuration file:
         ```nginx
@@ -225,7 +225,7 @@ The easiest way to see the basics is to do the following:
         ```
 
         Notice that the upstream is called `cafe` and it contains no servers explicitly defined in the configuration file.
-4. Finally, look at the nodeport definition:
+4. Finally, look at the `LoadBalancer` definition:
         ```yaml
             apiVersion: v1
             kind: Service
@@ -233,15 +233,16 @@ The easiest way to see the basics is to do the following:
               name: nginx-ingress
               namespace: nginx-ingress
               annotations:
-                # This switches between layer 7 and layer 4. This is for the nginx plus API
-                nginxinc.io/nlk-cafe: "http"
+                nginxinc.io/nlk-cafe: "http"   # switch between TCP and HTTP load balancing
             spec:
-              type: NodePort
+              type: LoadBalancer
+              externalIPs:
+              - 172.19.0.6 # This can be set manually for IP Discovery
               ports:
               - port: 443
                 targetPort: 443
                 protocol: TCP
-                name: nlk-cafe
+                name: nlk-cafe     # Must match Nginx upstream name
               selector:
                 app: nginx-ingress
         ```
@@ -252,20 +253,20 @@ The easiest way to see the basics is to do the following:
         Finally note that the `spec.selector.app` value corresponds to the NGINX Ingress Controller.
 5. See that performing a request to `https://cafe.example.com/coffee` in the browser routes us correctly.
 
-Now that we understand how these are being maintained, let's delete the `NodePort`
+Now that we understand how these are being maintained, let's delete the `LoadBalancer`
 ```bash
-$ kubectl delete -f nlk/nodeport.yaml
+$ kubectl delete -f nlk/loadbalancer.yaml
 service "nginx-ingress" deleted
 ```
 
-Now before we recreate the `NodePort` let's verify a few things:
+Now before we recreate the `LoadBalancer` let's verify a few things:
 1. Hitting `https://cafe.example.com/coffee` now results in a `502 bad gateway` response
 2. The NGINX Plus Dashboard shows no active servers in the `cafe` upstream
 
 Now let's add back the Service:
 
 ```bash
-$ kubectl apply -f nlk/nodeport.yaml
+$ kubectl apply -f nlk/loadbalancer.yaml
 service/nginx-ingress created
 ```
 
@@ -278,7 +279,34 @@ Notice that the high port the NGINX load balancer is proxying to is a **differen
 
 ## What Else is Interesting Here?
 
-### Handling the NGINX Restarting
+### Handling NGINX Restarting
+
+### Handling Addition or Removal of Nodes in the Cluster
+NGINX Loadbalancer for Kubernetes (NLK) can dynamically add upstreams for new worker nodes added to the cluster.  To illustrate:
+1. Start wrk: `docker run --rm --network kind elswork/wrk -t4 -c200 -d15m -H 'Host: cafe.example.com' --timeout 2s https://nginx-plus/coffee` so that we have a continuous flow of traffic to the cluster
+1. Grab the IP address of one of the second worker node:
+        ```bash
+        NODE_TWO_IP=docker inspect nlk-multi-node-demo-worker2 | jq '.[0] | .NetworkSettings.Networks.kind.IPAddress'
+        ```
+1. You can open the Grafana dashboard to follow traffic: `localhost:3000`
+1. View the Nginx Plus dashboard and see all three servers green
+1. Remove the docker container representing the second worker node from the cluster's network:
+        ```bash
+        docker network disconnect kind nlk-multi-node-demo-worker2
+        ```
+1. Observe Graphana and the NGINX Plus dashboard to see the server go down.
+1. Next, we'll use the NGINX Plus API to remove the second node's server entry from the upstream manually.  NLK won't remove it and NGINX will keep a record of it in case it comes back up.  In this case traffic serving to that node can quickly be resumed.
+    ```bash
+    curl -q -L -H "Accept: application/json" http://localhost:9000/api/9/http/upstreams/cafe/servers | jq '.[] | select(.server | contains("$NODE_TWO_IP")) | .id' | xargs -I {} curl -X DELETE http://localhost:9000/api/9/http/upstreams/cafe/servers/{}
+    ```
+1. See in the NGINX Plus Dashoard that the server has been removed
+1. Open k9s and tail the NLK logs
+1. Reconnect the node to the cluster:
+    ```bash
+    docker network connect kind nlk-multi-node-demo-worker2
+    ```
+1. See the NLK logs to note that it's added an upstream.  That upstream should also appear in the NGINX Plus dashboard and Grafana as well.
+
 
 ### Splitting Traffic at the Edge
 
