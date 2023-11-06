@@ -127,7 +127,13 @@ If you prefer to install another way, take a look at the `.tool-versions` file t
    ``` 
    (Thanks ChatGPT)
 
-3. Run the following commands in order to install the controller:
+3.  Modify the loadbalancer service 
+   ```bash
+   sed -i "" "s/PLUS_IP/$PLUS_IP/g" ./nlk/loadbalancer.yaml
+   ``` 
+   (Thanks ChatGPT)
+
+4. Run the following commands in order to install the controller:
    ```bash
    kubectl apply -f ./nginx-loadbalancer-kubernetes/deployments/deployment/namespace.yaml
    ./nginx-loadbalancer-kubernetes/deployments/rbac/apply.sh
@@ -159,10 +165,16 @@ We need to configure the NGINX Plus load balancer with certain upstreams, then p
       `127.0.0.1 cafe.example.com`
       This works because the NGINX Plus container is started with port bindings to `localhost`
 
-### Add the `NodePort` Manifest
+### Add the `NodePort` Manifest (Skip if adding `Loadbalancer` manifest)
 1. Run the below command to deploy the nodeport service.
    ```bash
    kubectl apply -f ./nlk/nodeport.yaml
+   ```
+
+### Add the `Loadbalancer` Manifest (Skip if adding `NodePort` manifest)
+1. Run the below command to deploy the loadbalancer service.
+   ```bash
+   kubectl apply -f ./nlk/loadbalancer.yaml
    ```
 
 ## Testing
