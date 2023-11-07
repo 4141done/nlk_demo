@@ -76,7 +76,7 @@ kubectl apply -f nic/install/nginx-plus-ingress.yaml
 echo "☕🍵 Installing cafe app..."
 kubectl apply -f nginx-loadbalancer-kubernetes/docs/cafe-demo/cafe-secret.yaml
 kubectl apply -f nginx-loadbalancer-kubernetes/docs/cafe-demo/cafe.yaml
-kubectl apply -f nginx-loadbalancer-kubernetes/docs/cafe-demo/cafe-virtualserver.yaml
+kubectl apply -f nic/cafe-virtualserver.yaml
 
 
 echo "🐸 Installing NLK"
@@ -100,4 +100,4 @@ sleep 10
 kubectl apply -f nlk/loadbalancer.yaml
 
 echo "🐳🐳 Done! 🐳🐳"
-printf "Next steps:\n    1. Check the NGINX Plus Dashboard at http://localhost:9000/dashboard\n    2. Make sure your /etc/hosts has the entry '127.0.0.1 cafe.example.com'\n    3. Try to hit the services 'curl -H -i -k https://cafe.example.com/tea'\n4. Tail NLK logs with `kubectl -n nlk get pods | grep deployment | cut -f1 -d" "  | xargs kubectl logs -n nlk --follow $1`\n5. View the Grafana dashboard at http//localhost:3000\n6. Create traffic with `docker run --rm --network kind elswork/wrk -t4 -c200 -d15m -H 'Host: cafe.example.com' --timeout 2s https://nginx-plus/coffee`"
+printf "Next steps:\n    1. Check the NGINX Plus Dashboard at http://localhost:9000/dashboard\n    2. Make sure your /etc/hosts has the entry '127.0.0.1 cafe.example.com'\n    3. Try to hit the services 'curl -H -i -k https://cafe.example.com/tea'\n4. Tail NLK logs with `kubectl -n nlk get pods | grep deployment | cut -f1 -d" "  | xargs kubectl logs -n nlk --follow $1`\n5. View the Grafana dashboard at http//localhost:3000"
