@@ -6,10 +6,10 @@ Kubecon 2023 related work
 You should have the files `nginx-repo.key` and `nginx-cert.key` there.
 
 2. Install [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation). asdf is the easiest way to get the exact version this repo is tested with:
-        * Install [asdf](https://asdf-vm.com/guide/getting-started.html)
-        * Install the kind plugin `asdf plugin-add kind https://github.com/reegnz/asdf-kind.git`
-        * `asdf install`
-        * Now you have kind!
+    1. Install [asdf](https://asdf-vm.com/guide/getting-started.html)
+    2. Install the kind plugin `asdf plugin-add kind https://github.com/reegnz/asdf-kind.git`
+    3. `asdf install`
+    4. Now you have kind!
 
 3. To just get things up and running just run `./start.sh`
 
