@@ -1,6 +1,24 @@
 # kubecon2023
 Kubecon 2023 related work
 
+## Setup
+1. Copy your NGINX Plus certificates to `/nginx-plus/etc/ssl/nginx`
+You should have the files `nginx-repo.key` and `nginx-cert.key` there.
+
+2. Install [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation). asdf is the easiest way to get the exact version this repo is tested with:
+        * Install [asdf](https://asdf-vm.com/guide/getting-started.html)
+        * Install the kind plugin `asdf plugin-add kind https://github.com/reegnz/asdf-kind.git`
+        * `asdf install`
+        * Now you have kind!
+
+3. To just get things up and running just run `./start.sh`
+
+Alternately, you can reference the guides:
+[commands.md](./commands.md) is a command by command setup that basically does what `start.sh` does.  It also includes some instructions for setting up nginx app protect
+
+[DEMO.md](./DEMO.md) is a user-facing explanation of NLK and demonstration flow.
+
+
 ## Setup Concepts
 ### Goal
 From the Kubernetes docs:
